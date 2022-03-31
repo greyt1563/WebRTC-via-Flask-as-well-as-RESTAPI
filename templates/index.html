@@ -1,0 +1,75 @@
+{% extends "theme/main_template.html" %}
+<!-- title -->
+{% block title %}WebRtc using Flask{% endblock %}
+
+<!-- head -->
+{% block head %} {% endblock %}
+
+<!-- Body -->
+{% block content %}
+<div class="body-theme">
+    <button id="start-camera" class="button">Start Camera</button>
+    <video id="video" width="320" height="240" autoplay></video>
+    <button id="click-photo" class="button">Click Photo</button>
+    <div id="dataurl-container">
+        <canvas id="canvas" width="320" height="240"></canvas>
+        <img id="canvas1" src="" />
+        <div id="dataurl-header">Image Data URL</div>
+        <textarea id="dataurl" readonly></textarea>
+    </div>
+
+    <script>
+        let camera_button = document.querySelector("#start-camera");
+        let video = document.querySelector("#video");
+        let click_button = document.querySelector("#click-photo");
+        let canvas = document.querySelector("#canvas");
+        let canvas1 = document.querySelector("#canvas1");
+        let dataurl = document.querySelector("#dataurl");
+        let dataurl_container = document.querySelector("#dataurl-container");
+
+        camera_button.addEventListener("click", async function() {
+            let stream = null;
+
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({
+                    video: true,
+                    audio: false,
+                });
+            } catch (error) {
+                alert(error.message);
+                return;
+            }
+
+            video.srcObject = stream;
+
+            video.style.display = "block";
+            camera_button.style.display = "none";
+            click_button.style.display = "block";
+        });
+
+        click_button.addEventListener("click", function() {
+            canvas
+                .getContext("2d")
+                .drawImage(video, 0, 0, canvas.width, canvas.height);
+            let image_data_url = canvas.toDataURL("image/jpeg");
+            let b64 = btoa(image_data_url);
+
+            dataurl.value = image_data_url;
+            canvas1.src = image_data_url;
+            dataurl_container.style.display = "block";
+
+            const xhttp = new XMLHttpRequest();
+            xhttp.open("POST", "ui");
+            let x = "fname=" + image_data_url;
+            xhttp.setRequestHeader(
+                "Content-type",
+                "application/x-www-form-urlencoded"
+            );
+            xhttp.send(x);
+        });
+    </script>
+</div>
+{% endblock %}
+
+<!-- Script -->
+{% block script %} {% endblock %}
